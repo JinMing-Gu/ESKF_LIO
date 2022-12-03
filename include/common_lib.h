@@ -13,7 +13,7 @@
 #include <eigen_conversions/eigen_msg.h>
 
 #include "my_utility.h"
-#include "gnss/gps_data.hpp"
+// #include "gnss/gps_data.hpp"
 
 // #define DEBUG_PRINT
 using namespace std;
@@ -63,14 +63,14 @@ struct MeasureGroup // Lidar data and imu dates for the curent process
     MeasureGroup()
     {
         lidar_beg_time = 0.0;
-        add_gps = false;
+        // add_gps = false;
         this->lidar.reset(new PointCloudXYZI());
     };
     double lidar_beg_time;
     double lidar_end_time;
-    bool add_gps; //  update gps or not
+    // bool add_gps; //  update gps or not
     PointCloudXYZI::Ptr lidar;
-    LLS_SLAM::GpsData gps_data;
+    // LLS_SLAM::GpsData gps_data;
     std::deque<sensor_msgs::Imu::ConstPtr> imu;
 };
 

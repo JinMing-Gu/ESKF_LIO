@@ -35,7 +35,8 @@ enum class SensorType
     VELODYNE,
     OUSTER,
     ROBOSENSE,
-    LIVOX
+    LIVOX,
+    ROTATING_LIDAR
 };
 
 struct smoothness_t
@@ -130,6 +131,10 @@ public:
         {
             sensor = SensorType::VELODYNE;
         }
+        else if (sensorStr == "rotating_lidar")
+        {
+            sensor = SensorType::ROTATING_LIDAR;
+        }
         else if (sensorStr == "livox")
         {
             sensor = SensorType::LIVOX;
@@ -219,6 +224,23 @@ public:
         columnIdnCountVec.assign(N_SCAN, 0);
     }
 
+    int cal_ring_index(int pointIndex)
+    {
+        int half = N_SCAN / 2;
+        int scan_id = pointIndex % N_SCAN;
+
+        if (scan_id % 2 == 0)
+        {
+            scan_id = scan_id / 2;
+        }
+        else
+        {
+            scan_id = scan_id / 2 + half;
+        }
+
+        return scan_id;
+    }
+
     void cloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
     {
         ros::Time t1 = ros::Time::now();
@@ -291,6 +313,28 @@ public:
             //           << ", " << laserCloudIn->points.back().time << "," << inputCloud->points.back().normal_x
             //           << ", " << inputCloud->points.back().normal_z << std::endl;
         }
+
+        else if (sensor == SensorType::ROTATING_LIDAR)
+        {
+            pcl::moveFromROSMsg(currentCloudMsg, *laserCloudIn);
+            inputCloud->points.resize(laserCloudIn->size());
+            inputCloud->is_dense = laserCloudIn->is_dense;
+            timespan = 0.1;
+            for (size_t i = 0; i < laserCloudIn->size(); i++)
+            {
+                auto &src = laserCloudIn->points[i];
+                auto &dst = inputCloud->points[i];
+                dst.x = src.x;
+                dst.y = src.y;
+                dst.z = src.z;
+                dst.intensity = src.intensity;
+                // dst.normal_y = src.ring; //  ring
+                dst.normal_y = cal_ring_index(i);
+                dst.normal_z = timespan;
+                dst.normal_x = i / laserCloudIn->size();
+            }
+        }
+
         else if (sensor == SensorType::LIVOX)
         {
             pcl::moveFromROSMsg(currentCloudMsg, *laserCloudIn);
@@ -389,24 +433,24 @@ public:
         }
 
         // check ring channel
-        static int ringFlag = 0;
-        if (ringFlag == 0)
-        {
-            ringFlag = -1;
-            for (int i = 0; i < (int)currentCloudMsg.fields.size(); ++i)
-            {
-                if (currentCloudMsg.fields[i].name == "ring")
-                {
-                    ringFlag = 1;
-                    break;
-                }
-            }
-            if (ringFlag == -1)
-            {
-                ROS_ERROR("Point cloud ring channel not available, please configure your point cloud data!");
-                ros::shutdown();
-            }
-        }
+        // static int ringFlag = 0;
+        // if (ringFlag == 0)
+        // {
+        //     ringFlag = -1;
+        //     for (int i = 0; i < (int)currentCloudMsg.fields.size(); ++i)
+        //     {
+        //         if (currentCloudMsg.fields[i].name == "ring")
+        //         {
+        //             ringFlag = 1;
+        //             break;
+        //         }
+        //     }
+        //     if (ringFlag == -1)
+        //     {
+        //         ROS_ERROR("Point cloud ring channel not available, please configure your point cloud data!");
+        //         ros::shutdown();
+        //     }
+        // }
 
         return true;
     }

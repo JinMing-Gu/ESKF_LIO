@@ -81,6 +81,7 @@ target_link_libraries(loam_feat_extract ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${O
 add_executable(loam_feat_extract_multi src/feature_extract_multi.cpp)
 target_link_libraries(loam_feat_extract_multi ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
 
-add_executable(loam_laserMapping src/laserMapping_gps.cpp include/ikd-Tree/ikd_Tree.cpp include/pose.cpp src/gnss/gps_data.cpp)
+# add_executable(loam_laserMapping src/laserMapping_gps.cpp include/ikd-Tree/ikd_Tree.cpp include/pose.cpp src/gnss/gps_data.cpp)
+add_executable(loam_laserMapping src/laserMapping.cpp include/ikd-Tree/ikd_Tree.cpp include/pose.cpp)
 add_dependencies(loam_laserMapping ${catkin_EXPORTED_TARGETS})
 target_link_libraries(loam_laserMapping ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} ${CERES_LIBRARIES})
